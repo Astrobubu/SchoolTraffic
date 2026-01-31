@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4aa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00a080;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Circle background -->
+  <circle cx="50" cy="50" r="45" fill="url(#grad)"/>
+  <!-- Bus icon simplified -->
+  <rect x="25" y="35" width="50" height="30" rx="5" fill="white"/>
+  <rect x="30" y="40" width="12" height="10" rx="2" fill="#00a080"/>
+  <rect x="45" y="40" width="12" height="10" rx="2" fill="#00a080"/>
+  <rect x="60" y="40" width="10" height="10" rx="2" fill="#00a080"/>
+  <circle cx="35" cy="70" r="6" fill="white"/>
+  <circle cx="65" cy="70" r="6" fill="white"/>
+  <circle cx="35" cy="70" r="3" fill="#00a080"/>
+  <circle cx="65" cy="70" r="3" fill="#00a080"/>
+</svg>
