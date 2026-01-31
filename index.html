@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafePod Traffic Simulation</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #deck-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      padding: 20px 24px;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #00d4aa 0%, #00a080 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-subtitle {
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    /* Mode Toggle */
+    .mode-toggle {
+      display: flex;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .mode-btn {
+      padding: 10px 24px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #ff4444 0%, #cc3333 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255,68,68,0.3);
+    }
+
+    .mode-btn.active.after {
+      background: linear-gradient(135deg, #00d4aa 0%, #00a080 100%);
+      box-shadow: 0 4px 12px rgba(0,212,170,0.3);
+    }
+
+    /* Controls Panel */
+    .controls {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .control-group {
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .playback-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .play-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #00d4aa 0%, #00a080 100%);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,212,170,0.4);
+    }
+
+    .time-display {
+      display: flex;
+      flex-direction: column;
+      min-width: 80px;
+    }
+
+    .time-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .time-value {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .speed-btn {
+      padding: 6px 12px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .speed-btn.active {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .progress-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00d4aa, #00ffcc);
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 100;
+      min-width: 280px;
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .stats-title {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stats-mode {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .stats-mode.before {
+      background: rgba(255,68,68,0.2);
+      color: #ff6666;
+    }
+
+    .stats-mode.after {
+      background: rgba(0,212,170,0.2);
+      color: #00d4aa;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.highlight {
+      color: #00d4aa;
+    }
+
+    .stat-value.warning {
+      color: #ff6666;
+    }
+
+    .stat-unit {
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.5);
+      margin-left: 4px;
+    }
+
+    .stat-comparison {
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .stat-comparison.improvement {
+      color: #00d4aa;
+    }
+
+    .stat-comparison.worse {
+      color: #ff6666;
+    }
+
+    /* Legend */
+    .legend {
+      position: absolute;
+      top: 80px;
+      right: 24px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 100;
+    }
+
+    .legend-title {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .legend-color {
+      width: 24px;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .legend-label {
+      color: rgba(255,255,255,0.8);
+      font-size: 12px;
+    }
+
+    .legend-marker {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    /* Loading screen */
+    .loading-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #00d4aa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .stats-panel {
+        left: 16px;
+        right: 16px;
+        bottom: 120px;
+        min-width: auto;
+      }
+
+      .controls {
+        left: 16px;
+        right: 16px;
+      }
+
+      .legend {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading map...</div>
+  </div>
+
+  <!-- Map Container -->
+  <div id="map"></div>
+  <canvas id="deck-canvas"></canvas>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🚌</div>
+      <div>
+        <div class="logo-text">SafePod</div>
+        <div class="logo-subtitle">Traffic Simulation • Al Safa 1, Dubai</div>
+      </div>
+    </div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="before">Before</button>
+      <button class="mode-btn" data-mode="after">After SafePod</button>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-title">Legend</div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #4da6ff;"></div>
+      <span class="legend-label">Arriving (to school)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #9678ff;"></div>
+      <span class="legend-label">Departing (from school)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #00d4aa;"></div>
+      <span class="legend-label">To Pod (SafePod mode)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #ffc832;"></div>
+      <span class="legend-label">Shuttle Bus (Pod→School)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-marker" style="background: #ff4444;">🏫</div>
+      <span class="legend-label">School</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-marker" style="background: #00d4aa;">P</div>
+      <span class="legend-label">SafePod</span>
+    </div>
+    <div class="legend-section">
+      <div class="legend-title" style="margin-top: 12px;">Peak Hours</div>
+      <div class="legend-item">
+        <span class="legend-label" style="font-size: 11px; color: rgba(255,255,255,0.6);">7:30 - 8:15 AM: Pods only</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-label" style="font-size: 11px; color: rgba(255,255,255,0.6);">After 8:15: Direct drop-off OK</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-group">
+      <div class="playback-controls">
+        <button class="play-btn" id="playBtn">
+          <span id="playIcon">▶</span>
+        </button>
+        <div class="time-display">
+          <span class="time-label">Time</span>
+          <span class="time-value" id="timeDisplay">7:00 AM</span>
+        </div>
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="speed-control">
+          <button class="speed-btn" data-speed="1">1x</button>
+          <button class="speed-btn active" data-speed="5">5x</button>
+          <button class="speed-btn" data-speed="10">10x</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Panel -->
+  <div class="stats-panel">
+    <div class="stats-header">
+      <span class="stats-title">Live Statistics</span>
+      <span class="stats-mode before" id="statsMode">Before</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-label">Active Vehicles</span>
+        <span class="stat-value" id="activeVehicles">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Peak Queue</span>
+        <span class="stat-value warning" id="peakQueue">0<span class="stat-unit">cars</span></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Avg Wait Time</span>
+        <span class="stat-value" id="avgWaitTime">0<span class="stat-unit">min</span></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Congestion</span>
+        <span class="stat-value warning" id="congestion">0<span class="stat-unit">%</span></span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
