@@ -320,6 +320,37 @@
       color: #ff6666;
     }
 
+    .stats-info {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stats-info-title {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .stats-info ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .stats-info li {
+      color: rgba(255,255,255,0.6);
+      font-size: 10px;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .stats-info li strong {
+      color: rgba(255,255,255,0.8);
+    }
+
     /* Legend */
     .legend {
       position: absolute;
@@ -535,21 +566,30 @@
     </div>
     <div class="stats-grid">
       <div class="stat-item">
-        <span class="stat-label">Active Vehicles</span>
+        <span class="stat-label">Vehicles on Road</span>
         <span class="stat-value" id="activeVehicles">0</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Peak Queue</span>
+        <span class="stat-label">Queue at Gates</span>
         <span class="stat-value warning" id="peakQueue">0<span class="stat-unit">cars</span></span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Avg Wait Time</span>
+        <span class="stat-label">Avg Queue Wait</span>
         <span class="stat-value" id="avgWaitTime">0<span class="stat-unit">min</span></span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Congestion</span>
+        <span class="stat-label">Road Capacity</span>
         <span class="stat-value warning" id="congestion">0<span class="stat-unit">%</span></span>
       </div>
+    </div>
+    <div class="stats-info">
+      <div class="stats-info-title">What we're measuring:</div>
+      <ul>
+        <li><strong>Vehicles on Road</strong> - Cars currently driving in school zone</li>
+        <li><strong>Queue at Gates</strong> - Cars waiting at destination (last 20% of trip)</li>
+        <li><strong>Avg Queue Wait</strong> - Extra time spent waiting vs normal drive</li>
+        <li><strong>Road Capacity</strong> - % of road network capacity used</li>
+      </ul>
     </div>
   </div>
 

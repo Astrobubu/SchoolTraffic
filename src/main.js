@@ -216,11 +216,19 @@ function updateStats() {
   const isBefore = state.mode === 'before';
   const stats = calculateStats(trips, state.currentTime, isBefore);
 
-  elements.activeVehicles.textContent = stats.active;
-  elements.peakQueue.innerHTML = `${stats.peakQueue}<span class="stat-unit">cars</span>`;
-  elements.avgWaitTime.innerHTML = `${stats.avgWaitTime}<span class="stat-unit">min</span>`;
-  elements.congestion.innerHTML = `${stats.congestion}<span class="stat-unit">%</span>`;
+  // Vehicles currently on roads in the school area
+  elements.activeVehicles.textContent = stats.vehiclesOnRoad;
 
+  // Cars queuing at destination (gates or pods)
+  elements.peakQueue.innerHTML = `${stats.queueAtDestination}<span class="stat-unit">cars</span>`;
+
+  // Average time spent waiting (in queue, not driving)
+  elements.avgWaitTime.innerHTML = `${stats.avgWaitTime}<span class="stat-unit">min</span>`;
+
+  // Road congestion: vehicles vs road capacity
+  elements.congestion.innerHTML = `${stats.congestionPercent}<span class="stat-unit">%</span>`;
+
+  // Color coding: red/warning for "before", green/good for "after"
   const valueClass = isBefore ? 'stat-value warning' : 'stat-value highlight';
   elements.peakQueue.className = valueClass;
   elements.avgWaitTime.className = valueClass;
