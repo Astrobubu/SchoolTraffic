@@ -325,6 +325,21 @@ function initEventListeners() {
 
   elements.progressBar.addEventListener('click', setTimeFromProgress);
 
+  // Mobile legend toggle
+  const legendToggle = document.getElementById('legendToggle');
+  const legend = document.getElementById('legend');
+  if (legendToggle && legend) {
+    legendToggle.addEventListener('click', () => {
+      legend.classList.toggle('mobile-visible');
+    });
+    // Close legend when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!legend.contains(e.target) && e.target !== legendToggle) {
+        legend.classList.remove('mobile-visible');
+      }
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
       e.preventDefault();
